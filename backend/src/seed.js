@@ -1,0 +1,14 @@
+require('dotenv').config();
+const { reset, empty, insert, update } = require('./db');
+const { hashPassword } = require('./auth');
+const data = reset(empty());
+const admin = insert('users',{role:'restaurant_admin',name:'Restaurant Admin',phone:'07711111111',password_hash:hashPassword('123456'),is_active:1});
+insert('users',{role:'restaurant_staff',name:'Restaurant Staff',phone:'07733333333',password_hash:hashPassword('123456'),is_active:1});
+const du = insert('users',{role:'driver',name:'Ahmed Driver',phone:'07722222222',password_hash:hashPassword('123456'),is_active:1});
+const driver = insert('drivers',{user_id:du.id,status:'available_at_restaurant',vehicle_type:'motorcycle',last_lat:31.04219,last_lng:46.25726,last_location_at:new Date().toISOString(),tracking_enabled:0});
+Object.assign(data.settings,{restaurant_name:'Demo Restaurant',restaurant_lat:31.04219,restaurant_lng:46.25726,geofence_radius_meters:100,average_return_speed_kmh:25,return_buffer_minutes:10,minimum_return_minutes:10,commission_type:'fixed',fixed_commission_amount:3000,penalty_enabled:1,auto_penalty_enabled:0,penalty_percent:50,penalty_duration_minutes:60,require_manager_approval_for_penalty:1,updated_at:new Date().toISOString()});
+insert('orders',{customer_name:'Ali Customer',customer_phone:'07700000000',customer_lat:31.0602,customer_lng:46.2471,customer_address:'Near market',food_price:20000,delivery_fee:3000,total_price:23000,payment_method:'cash',status:'assigned',driver_id:driver.id,assigned_at:new Date().toISOString(),picked_up_at:null,arrived_customer_at:null,delivered_at:null,allowed_return_minutes:null,allowed_return_by:null,returned_at:null,proof_photo_path:null,proof_note:null,return_distance_km:null,late_minutes:0,created_by:admin.id,updated_at:new Date().toISOString()});
+console.log('Database reset complete.');
+console.log('Admin:  07711111111 / 123456');
+console.log('Staff:  07733333333 / 123456');
+console.log('Driver: 07722222222 / 123456');
