@@ -24,6 +24,29 @@ jobs:
 
       - name: Prepare Flutter projects
         run: ./scripts/prepare_flutter_projects.sh
+        
+      - name: Fix Flutter Android embedding v2
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          manifests = [
+              Path("apps/driver_app/android/app/src/main/AndroidManifest.xml"),
+              Path("apps/restaurant_app/android/app/src/main/AndroidManifest.xml"),
+          ]
+
+          for path in manifests:
+              text = path.read_text()
+              if 'android:name="flutterEmbedding"' not in text:
+                  text = text.replace(
+                      "</application>",
+                      '        <meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>'
+                  )
+                  path.write_text(text)
+                  print(f"Fixed {path}")
+              else:
+                  print(f"Already fixed {path}")
+          PY
 
       - name: Build driver APK
         run: ./scripts/build_driver_apk.sh
