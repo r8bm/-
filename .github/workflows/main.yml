@@ -24,7 +24,7 @@ jobs:
 
       - name: Prepare Flutter projects
         run: ./scripts/prepare_flutter_projects.sh
-        
+
       - name: Fix Flutter Android embedding v2
         run: |
           python3 - <<'PY'
@@ -47,27 +47,29 @@ jobs:
               else:
                   print(f"Already fixed {path}")
           PY
+
       - name: Fix Dart async HTTP handler calls
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
+
+          methods = ["get", "post", "put", "patch", "delete"]
 
           for path in Path("apps").glob("*/lib/services/api_service.dart"):
               text = path.read_text()
-              replacements = {
-                  "=> _handle(http.get(": "async => _handle(await http.get(",
-                  "=> _handle(http.post(": "async => _handle(await http.post(",
-                  "=> _handle(http.put(": "async => _handle(await http.put(",
-                  "=> _handle(http.patch(": "async => _handle(await http.patch(",
-                  "=> _handle(http.delete(": "async => _handle(await http.delete(",
-              }
 
-              for old, new in replacements.items():
-                  text = text.replace(old, new)
+              for method in methods:
+                  text = re.sub(
+                      r"\)\s*=>\s*_handle\(\s*http\." + method + r"\(",
+                      ") async => _handle(await http." + method + "(",
+                      text,
+                  )
 
               path.write_text(text)
-              print(f"Fixed async calls in {path}")
+              print(f"Fixed async HTTP calls in {path}")
           PY
+
       - name: Build driver APK
         run: ./scripts/build_driver_apk.sh
 
